@@ -1,62 +1,41 @@
 package com.sda.Otoczka;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Stack;
+import java.util.*;
+
+import static java.util.Comparator.*;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        Stack<MyPoint> stack = new Stack<>(); // inicjacja stoku
+        Stack<MyPoint> stack = new Stack<>(); // inicjacja stosu
 
-        MyPoint pA = new MyPoint(1, 1);
-        MyPoint pB = new MyPoint(10, 2);
-        MyPoint pC = new MyPoint(4, 3);
-        MyPoint pD = new MyPoint(8, 4);
-        MyPoint pE = new MyPoint(9, 5);
-        MyPoint pF = new MyPoint(7, 8);
-        MyPoint pG = new MyPoint(8, 10);
-        MyPoint pH = new MyPoint(3, 7);
-        MyPoint pI = new MyPoint(3, 9);
-        MyPoint pJ = new MyPoint(2, 5);
+        // sortowanie punktów po wielkosci alfa - najmniejszym kacie
+        // w klasie Input definiujemy punkty
+        Input.inputList().stream()
+                .sorted(Comparator.comparingDouble(MyPoint::getAlfa));
 
-        ArrayList<MyPoint> pAll =
-                new ArrayList<>(Arrays.asList(pA, pB, pC, pD, pE,
-                                            pF, pG, pH, pI, pJ));
+        // odkladamy na stos 3 pierwsze punkty o najmniejszym kącie
+        for (int p=0; p<2; p++) stack.push(Input.inputList().get(p));
 
-        int [] tab = new int[10];
+        for (int i = 2; i<Input.inputList().size()-1; i++) {
+            // do wyliczenia det() musimy odczytac wspolrzedne punktow na stosie
+            // w odwrotnej kolejnosc i przechowac w obiektach klasy MyPoint
+            MyPoint b = new MyPoint(stack.peek().getX(), stack.peek().getY());
+            stack.pop();
+            MyPoint a = new MyPoint(stack.peek().getX(), stack.peek().getY());
+            stack.pop();
 
-        for (MyPoint mp: pAll) {
-            System.out.println(mp.alfaDet(mp.getCoor()));
+            Det det = new Det(a.getCoor(), b.getCoor(), Input.inputList().get(i+1).getCoor());
+            // wczesniej pobrane punkty oddajemy na stos
+            stack.push(a);
+            stack.push(b);
+
+            // jesli skrecamy w prawo to usuwamy punkt z otoczki
+            if (det.detResult() < 0) stack.pop();
+            // i na stos odkladamy nastepny punkt do sprawdzenia
+            stack.push(Input.inputList().get(i+1));
         }
-
-        //pG.alfaDet(pG);
-
-        Det det2 = new Det(pAll.get(0).getCoor(),
-                            pAll.get(1).getCoor(),
-                            pAll.get(2).getCoor());
-
-        System.out.println(det2.detResult());
-
-        for (int a = 0; a<pAll.size()-2; a++) {
-            Det det = new Det(pAll.get(a).getCoor(),
-                                pAll.get(a + 1).getCoor(),
-                                pAll.get(a + 2).getCoor());
-
-            if (det.detResult() > 0) {
-                stack.push(pAll.get(a + 2));
-                System.out.println("Punkt "
-                        + pAll.get(a + 2).toString() + " leci na stos");
-            } else {
-                System.out.println("Usuwamy punkt "
-                        + stack.peek() + " ze stosu");
-                stack.pop();
-            }
-            det = null;
-        }
-
-        System.out.println("Punkty wewnatrz otoczki: " +
-                Arrays.toString(stack.toArray()));
+        System.out.println("Punkty tworzące otoczke: " + Arrays.toString(stack.toArray()));
     }
 }
